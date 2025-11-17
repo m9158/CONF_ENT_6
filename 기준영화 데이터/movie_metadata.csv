@@ -1,4 +1,4 @@
-movieCd,title,openDt,ott_release_dt,ott_release_platform,budget,genre,watch_grade_nm,show_tm,is_original_ip,is_followup,nation_nm,distributor_nm,director_nm,director_nm_index,actor1_nm,actor1_nm_star_index,actor2_nm,actor2_nm_star_index,actor3_nm,actor3_nm_star_index,,director_score,actor1_score,actor2_score,actor3_score,Anchor_score,Support_score,Star_index
+movieCd,title,openDt,ott_release_dt,ott_release_platform,budget,genre,watch_grade_nm,show_tm,is_original_ip,is_followup,nation_nm,distributor_nm,director_nm,director_nm_star_meter,actor1_nm,actor1_nm_star_meter,actor2_nm,actor2_nm_star_meter,actor3_nm,actor3_nm_star_meter,,director_score,actor1_score,actor2_score,actor3_score,Anchor_score,Support_score,Star_index
 20224579,악마들,20230705,20231017,Netflix,200000000,액션,19,106,1,0,한국,(주)콘텐츠지,김재훈,376137,장동윤,39169,오대환,85638,최귀화,44815,,2.123623948,3.10602752,2.766303488,3.047546604,3.10602752,2.64582468,11.32403179
 20227410,천박사 퇴마 연구소: 설경의 비밀,20230927,20240119,Netflix,11300000000,판타지,12,98,1,0,한국,(주)외유내강,김성식,1016902,강동원,20947,허준호,38950,이솜,17480,,1.691690903,3.377848172,3.108462542,3.456428576,3.456428576,2.726000539,12.87865474
 20225894,뉴 노멀,20231108,20240527,Wavve,3800000000,스릴러,15,113,1,0,한국,언파스튜디오,정범식,118709,최지우,38275,이유미,5431,최민호,60365,,2.624486358,3.116054805,3.964090202,2.918184799,3.964090202,2.886241987,15.40541378
@@ -81,4 +81,5 @@ movieCd,title,openDt,ott_release_dt,ott_release_platform,budget,genre,watch_grad
 20236230,씬,20240403,20240621,Neflix,1200000000,공포,15,103,1,0,한국,(주)도어이앤엠,한동석,"48,883",김윤혜,10315,송이재,247691,박지훈,99496,,3.009812153,3.685500772,2.305059778,2.701164383,3.685500772,2.672012105,13.53320345
 20212668,도그데이즈,20240207,20250110,Netflix,8200000000,드라마,12,120,1,0,한국,(주)씨제이이엔엠,김덕민,"524,711",윤여정,"136,921",유해진,"36,281",김윤진,"5,301",,1.979049836,2.562499942,3.139290755,3.9746122,3.9746122,2.560280178,14.15073303
 20206946,시민덕희,20240124,20240523,Netflix,6500000000,액션,15,114,0,0,한국,(주)씨제스스튜디오,박영주,204354,라미란,"47,117",공명,"26,812",염혜란,"26,442",,2.388586861,3.025792374,3.270640794,3.276675703,3.276675703,2.895006676,12.76267374
+
 20211477,데드맨,20240207,20240411,Wavve,7500000000,범죄,15,108,0,0,한국,(주)팔레트픽처스,하준원,"706,728",조진웅,"28,325",김희애,"39,354",이수경,"144,294",,1.849717706,3.246800086,3.103981123,2.539721732,3.246800086,2.497806854,11.35667959
