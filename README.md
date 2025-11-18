@@ -1,0 +1,190 @@
+# 연구 계획: 홀드백 최적화 및 정책 균형 시뮬레이션
+
+이 문서는 Sharma et al. 및 'OTT Suitability Index' 연구를 바탕으로 한국 영화 시장에 적합한 동적 홀드백 최적화 및 산업 생태계 균형 정책을 도출하기 위한 연구 계획입니다.
+
+## 🔑 주요 기호 및 용어 정의 (Key Notations & Definitions)
+
+본 연구에서 사용되는 핵심 변수와 기호들의 정의입니다.
+
+- **$\\alpha$ (Alpha, 성공 잠재력):** 개봉 전 예측된 영화의 흥행 잠재력입니다. 본 연구에서는 '개봉 전 예측 가능한 총매출액(극장+OTT) 등급'으로 정의하여 0과 1 사이의 값으로 정규화합니다. (1에 가까울수록 잠재력 높음)
+- **$\\\hat{\\alpha}$ (Alpha-hat, 예측된 성공 잠재력):** 모델 1을 통해 실제로 예측된 $\\alpha$ 값입니다. (Part 3의 시뮬레이션에서 영화 그룹핑 용도로 사용)
+- **$t$ (Time, 홀드백 기간):** 극장 개봉일로부터 OTT 공개일까지의 기간(일수)입니다.
+- **$T$ (Total Lifecycle, 전체 생애 주기):** 영화가 시장에서 유의미한 수익을 창출하는 전체 기간입니다. (예: 365일)
+- **$R_b(t)$ (Revenue before OTT, OTT 출시 전 극장 수익):** OTT에 공개되지 않았을 때 특정 시점 $t$에 발생하는 일일 극장 예상 수익입니다.
+- **$R_a(t)$ (Revenue after OTT, OTT 출시 후 극장 수익):** OTT 공개 이후 특정 시점 $t$에 발생하는 일일 극장 예상 수익입니다. 통상적으로 $R_a(t) < R_b(t)$ (Cannibalization 발생)입니다.
+- **$\\tau$ (Tau, 디지털 권리료):** 영화 배급사(MD)가 영화의 OTT 방영권을 넘기는 대가로 OTT 플랫폼으로부터 받는 금액(판권료)입니다.
+- **TFS (Theatrical-First Score / 극장 적합도):** 영화의 '이벤트성'을 나타내는 지표. (External/Internal Spectacle 기반)
+- **ONS (OTT-Native Score / OTT 적합도):** 영화의 'OTT 고유 몰입도'를 나타내는 지표. (Narrative Complexity/Thematic Intimacy 기반)
+- **$W_{\\text{Industry}}$ (Welfare of Industry, 산업 전체 효용):** 단순 합산이 아닌, 생태계 지속가능성을 위한 제약 조건이 반영된 산업 전체의 조정된 효용입니다.
+
+## ⚙️ 예측 엔진 구축 (선행 단계)
+
+연구의 핵심이 되는 예측 엔진은 영화의 성공 잠재력($\\alpha$), 적합도 지표(TFS, ONS), 동적 수익 곡선($R_b, R_a$), 그리고 디지털 권리료($\\tau$)를 추정합니다.
+
+### 1. 모델 1: 성공 잠재력 ($\\alpha$) 예측 (정적 모델)
+
+- **목표:** 개봉 전 정보만으로 영화의 흥행 등급(Success Factor, $\\alpha$)을 예측합니다.
+- **입력 데이터 (독립변수):**
+    - **인적 요소:** 감독, 주연 배우, 배급사의 과거 흥행 실적 (평균 관객 수, 수상 내역 등).
+    - **콘텐츠 요소:** 장르, 원작 IP 유무, 시리즈 여부, 관람 등급, 제작 예산, 러닝타임.
+    - **시장 요소:** 개봉 시기(성수기/비수기), 경쟁작 수.
+    - **하입(Hype) 지표:** 개봉 전 2주간 소셜 미디어 언급량, 사전 예매율.
+- **출력 데이터 (종속변수):** 최종 총매출액 등급 (0~1 사이의 $\\alpha$ 값으로 정규화).
+- **산출물:** DB 내 모든 영화의 예측된 성공 잠재력($\\hat{\\alpha}$) 값.
+- **추천 방법론:** XGBoost 또는 Random Forest.
+- **주요 한계 및 용도:** 영화 흥행은 개봉 후 변수가 커 $R^2$ 값이 낮을 수 있습니다. (예: 0.5 미만) 따라서 이 모델의 $\\\hat{\\alpha}$ 값은 모델 2와 분리하며, 주로 Part 3 시뮬레이션에서 'High/Low $\\alpha$' 그룹을 나누는 용도로만 한정합니다.
+
+### 2. 모델 2: 동적 수익 곡선 ($R_b$, $R_a$) 예측 (Hybrid Pipeline)
+
+- **목표:** 개봉 후 일일 데이터를 기반으로 'OTT 미출시 시 예상 수익 곡선($R_b$)'과 'OTT 출시 시 수익 곡선($R_a$)'을 예측합니다. 이 모델은 모델 1의 예측 오류($R^2<0.5$)와 데이터 누락 문제(KOBIS), 그리고 한국 시장의 독점적 홀드백 구조(Missing Data)를 모두 고려하여 '데이터 기반 학습($R_b$)'과 '이론 기반 시뮬레이션($R_a$)'을 결합합니다.
+
+#### 2.1. Feature Engineering (입력 변수 생성)
+
+LSTM 모델 2-A($R_b$ 예측)에 입력할 시퀀스 데이터를 생성합니다.
+
+- **시간 변수:** day_number (개봉 D+n일), is_weekend (주말/공휴일 여부)
+- **KOBIS 성과 변수 (Top 10 기준):**
+    - `screen_cnt` (스크린 수)
+    - `aud_per_show` (회당 관객 수) [좌석 점유율 대리 변수]
+        - **계산식:** `daily_audi_cnt / show_cnt`
+- **경쟁 강도 변수 (HHI Screen Share, $CI'$):** [$\\\hat{\\alpha}$ 대리 변수]
+    - KOBIS Top 10의 `screen_cnt` 데이터를 활용한 HHI 지표. 모델 1의 $\\\hat{\\alpha}$를 사용하지 않아 무결성을 확보합니다.
+    - **계산식 (날짜 d, 타겟 영화 i 기준):**
+        - $Screen_{Total10}(d) = \\sum_{k \\in K_{10}} screen\\_cnt_k$
+        - $Share_j(d) = screen\\_cnt_j / Screen_{Total10}(d)$ (경쟁작 $j$)
+        - $CI'(d) = \\sum_{j \\in K_{10}, j \\neq i} (Share_j(d))^2$
+- **WOM (입소문) 변수:**
+    - `social_buzz` (네이버 검색 인덱스 - 관심도)
+    - `daily_rating` (일별 평점 - 평가)
+
+#### 2.2. 모델 2-A: $R_b$ 예측 LSTM 모델 (자연 수익 곡선)
+
+- **목표:** OTT의 영향이 배제된 '순수 극장 수익 곡선'의 동적 패턴을 학습합니다.
+- **데이터셋:** 'All Theatrical Data'
+    - 한국 시장은 OTT 출시 전 극장 상영이 종료되므로, KOBIS에 존재하는 모든 데이터는 $R_b$ 데이터입니다. 따라서 모든 영화의 전체 상영 기간 데이터를 학습에 사용합니다.
+- **데이터 변환 (시퀀스 생성):**
+    - Time Step (시퀀스 길이) $N=7$일로 가정.
+    - **X_train ($R_b$):** (샘플 수, $N=7$, 피처 개수) 형태의 3D 배열로 변환.
+    - **Y_train ($R_b$):** (샘플 수, 1) - 8일째의 `daily_sales_amt`
+- **모델:** LSTM (Stacked LSTM 권장). "과거 7일간의 스크린 수, 경쟁 강도($CI'$), 평점 등의 패턴이 8일째의 매출에 미치는 시차 효과(Lagged Effect)를 학습"합니다.
+- **모델 아키텍처 (Stacked LSTM):**
+    - Input Layer (shape=(7, num_features))
+    - LSTM(64, return_sequences=True) (시퀀스 정보를 다음 레이어로 전달)
+    - LSTM(32) (마지막 시점의 정보만 출력)
+    - Dense(1) (최종 매출액 예측)
+- **학습:** `model_Rb.fit(X_train_Rb, Y_train_Rb)`
+- **산출물:** `model_Rb` (OTT 개입이 없을 시, 일일 매출액을 예측하는 LSTM 모델)
+
+#### 2.3. 모델 2-B: $R_a$ 생성 시뮬레이션 (Rule-Based Cannibalization)
+
+- **문제점:** 한국 시장의 독점적 홀드백 관행으로 인해, `ott_release_dt` 이후에는 극장 데이터가 존재하지 않아(Missing) 잠식률 학습이 불가능합니다.
+- **해결책 (Theoretical Simulation):** 데이터 학습 대신 **'이론 기반 시뮬레이션 로직'**으로 $R_a$를 생성합니다.
+- **시뮬레이션 로직 ($R_a$ 생성):**
+    - Part 3 시뮬레이션 단계에서 특정 홀드백($t_{sim}$) 시나리오가 주어지면, 다음 수식을 통해 $R_a$를 생성합니다.
+    - **잠식 계수($C_i$) 산출:** 영화 $i$의 장르적 특성(TFS, ONS)과 소비자 성향($\\gamma$)을 반영합니다.
+        $$C_i(	ext{TFS}, 	ext{ONS}, \\gamma) = \\text{Base Rate} \\times (1 + \text{ONS}_i) \\times (1 - \text{TFS}_i) \\times \\gamma$$ 
+    - **Base Rate:** 기본 잠식률 (예: 0.3)
+        - **정의:** "영화의 장르적 특성(TFS, ONS)이나 소비자 성향($\\gamma$)과 무관하게, OTT에 출시된다는 사실만으로 발생하는 기본 극장 수요 감소율."
+        - **역할:** 시뮬레이션 수식에서 기준점 역할을 합니다.
+        - **범위:** 0과 1 사이의 값 (보통 0.1 ~ 0.5 사이).
+    - **BaseRate 설정 방법론 (3가지 접근법):**
+        - **A. 문헌 기반 설정 (Literature-Based Approach) - 가장 추천**
+            - 선행 연구나 업계 보고서에서 제시된 수치를 인용하여 설정합니다.
+            - **해외 사례 참고:** "미국 시장 연구(XXX et al., 20XX)에 따르면, OTT 동시 개봉 시 극장 관객이 평균 20% 감소했다." $\\rightarrow$ BaseRate = 0.2
+            - **설문조사 데이터 활용:** "소비자 조사 결과, 극장 상영작이 OTT에 바로 나오면 극장에 안 가겠다는 응답이 30%였다." $\\rightarrow$ BaseRate = 0.3
+        - **B. 시나리오 기반 민감도 분석 (Sensitivity Analysis Approach) - 차선**
+            - **비관적 시나리오 (Conservative):** BaseRate = 0.1
+            - **중립적 시나리오 (Neutral):** BaseRate = 0.3
+            - **충격적 시나리오 (Aggressive):** BaseRate = 0.5
+    - **ONS 가중:** ONS가 높을수록(드라마 등) 잠식 심화.
+    - **TFS 방어:** TFS가 높을수록(아이맥스 등) 잠식 방어.
+    - **$R_a$ 적용:** $t \\ge t_{sim}$일 때, $R_a(t) = R_b(t) \\times (1 - C_i)$
+
+- **[시뮬레이션 로직]**
+    - **Input:** 특정 영화 $i$, 가상의 홀드백 기간 $t_{sim}$ (예: 30일)
+    - **Step 1 ($R_b$ 예측):** 모델 2를 돌려 개봉 1일~60일까지의 $R_b$ 곡선을 예측합니다.
+    - **Step 2 (잠식률 $C$ 계산):** 영화 $i$의 특성(TFS, ONS)을 기반으로 잠식 계수를 산출합니다.
+        - **수식 예:** $C_i = 0.5 + (0.2 \\times \text{ONS}_i) - (0.2 \\times \text{TFS}_i)$ (범위는 0~1 사이로 조정)
+    - **Step 3 ($R_a$ 적용):** $t_{sim}$ (30일) 이후의 날짜부터는 수익을 강제로 깎습니다.
+        - $D < 30$: $Revenue = R_b(D)$
+        - $D \\ge 30$: $Revenue = R_b(D) \\times (1 - C_i)$
+
+#### 2.4. 최종 모델 2 파이프라인 (Part 3 시뮬레이션에서 사용)
+
+- **$R_b(t)$ 예측:** `Predicted_Rb(t) = model_Rb.predict(...)` (LSTM 호출)
+- **$R_a(t)$ 예측 ($t \\ge t_{sim}$ 시점부터):**
+    - $C_i$ 계산 (Rule-Based)
+    - `Predicted_Ra(t) = Predicted_Rb(t) * (1 - C_i)`
+
+### 3. 모델 3: 디지털 권리료 ($\\tau$) 추정 (Heuristic Model)
+
+- **목표:** 영화의 체급(Scale), 홀드백 기간($t$), 적합도 지표($TFS, ONS$)에 따른 디지털 권리료 $\\tau$를 추정합니다.
+- **문제점 해결:** 정확한 판권료 데이터 확보의 어려움을 고려하여, 업계 통용 기준인 **'제작비 비례 방식'**을 채택하여 현실성을 확보합니다.
+- **필요 데이터:**
+    - `total_production_cost` (총제작비, P&A 포함)
+    - `base_rate` (제작비 대비 판권료 비율, 예: 10%)
+- **추천 방법론 (수식 모델링):**
+    $$\\tau(t, \text{TFS}, \text{ONS}) \\approx \\underbrace{(\text{Total Cost} \\times R)}_{\\text{Base Price Est.}} \\times (1 + \text{ONS}) \\times \\frac{1}{(1 + d(\\text{TFS}) \\cdot t)}$$
+- **Base Price Estimation:**
+    - 복잡한 역산 모델 대신, **총제작비의 $R\%$(예: 10~15%)**를 기본 판권료로 가정합니다.
+    - $R$ 값은 시뮬레이션 파라미터로 설정하여 민감도 분석(Sensitivity Analysis)을 수행할 수 있습니다.
+- **ONS (OTT 적합도):** OTT 플랫폼이 선호하는 장르(드라마, 범죄 등)일수록 기본 권리료에 프리미엄(가중치)이 붙음.
+- **d(TFS) (감가상각률):** $TFS$가 높은 '이벤트성' 영화일수록 극장 개봉 시점의 화제성이 중요하므로, $t$가 길어질수록 가치 하락폭($d$)이 큼.
+
+---
+
+## [Part 1] 미시적 접근: 개별 주체 수익 최적화
+
+- **질문:** "이 영화의 수익($\\Pi_M$)을 극대화하는 최적의 홀드백 기간($t^*$)은?"
+- **입력:** 예측된 $\\\hat{\\alpha}$, $R_b(t)$, $R_a(t)$, $\\tau(\\\hat{\\alpha}, t, \text{TFS}, \text{ONS})$.
+- **방법론 (수치 최적화):**
+    - **MD 총수익 함수 정의:** $\\Pi_{M}(t) = \\int_{0}^{t} R_b(z) dz + \\int_{t}^{T} R_a(z) dz + \\tau(\\\hat{\\alpha}, t, \text{TFS}, \text{ONS})$
+    - $t$를 1일부터 180일까지 변경하며 $\\Pi_M(t)$가 최대가 되는 $t^*$ 탐색.
+- **산출물:** 개별 영화별 최적 홀드백 기간 권고안.
+
+---
+
+## [Part 2] 거시적 전환: 미시적 접근의 한계와 충돌
+
+- **스토리텔링:** "개별 최적화가 산업 전체에는 최악의 결과일 수 있다."
+- **분석 방법 (시각화):**
+    - **독립 영화의 위기:** Low-$\\alpha$ 영화의 수익 곡선($\\Pi_M(t)$)과 일괄 규제($t=90$일) 시의 기회비용 시각화.
+    - **국내 OTT의 역설:** 홀드백 기간($t$) 증가에 따른 국내 OTT 효용($U_{\\text{Local_OTT}}$) 감소와 High-$\\alpha$ 영화의 긴 $t^*$ 간 충돌 시각화.
+
+---
+
+## [Part 3] 거시적 분석: 산업 생태계 효용 시뮬레이션
+
+- **질문:** "특정 홀드백 정책($t$)이 산업 전체 효용($W_{\\text{Industry}}$)과 각 이해관계자에게 미치는 영향은?"
+
+### 각 주체별 효용 함수 정의 (Utility Functions)
+
+- **배급사/극장 ($U_{\\text{MD/Theater}}$):** 금전적 수익 극대화
+    $$U_{\\text{MD/Theater}}(t, \\alpha) = \\int_{0}^{t} R_b(z|\\alpha) dz + \\int_{t}^{T} R_a(z|\\alpha, p, \\gamma, \text{TFS, ONS}) dz + \\tau(\\alpha, t, \text{TFS, ONS})$$
+    - $R_a$ 감소폭이 $p, \\gamma, \text{TFS, ONS}$의 영향을 받음.
+
+- **독립 제작사 ($U_{\\text{Indie}}$):** 생존을 위한 현금 흐름 중시
+    $$U_{\\text{Indie}}(t, \\alpha_{\\text{low}}) = \\sum_{i} \\left( \\int_{0}^{t} \\frac{R_b(z)}{(1+r)^z} dz + \\frac{\\tau(\\alpha_{\\text{low}}, t, \text{TFS, ONS})}{(1+r)^t} \\right)$$
+    - 높은 할인율($r$)을 적용하여, 긴 홀드백으로 인한 자금 경색 위험을 반영.
+
+- **국내 OTT ($U_{\\text{Local_OTT}}$):** 상대적 매력도 확보
+    $$U_{\\text{Local_OTT}}(t, \\alpha) = (\\mathbf{ONS} \\times f_{\\text{discount}}(t, \\beta_{\\text{ad}})) - \\text{Cost}(\\tau)$$
+    - 효용의 기반이 $ONS$ 점수가 됨. $t$가 길어질수록 효용 감소.
+
+- **소비자 ($U_{\\text{Consumer}}$):** 효용 대비 비용/불편함 최소화
+    $$U_{\\text{Consumer}}(t) = \\text{Value}(t|\\gamma) - \\text{Price}(t) - \\text{Inconv}(t) - P_{\\text{Piracy}}(t|p_{\\text{rate}})$$ 
+    - 홀드백($t$)이 길어질수록 불편함(Inconv)과 불법복제 위험비용($P_{\\text{Piracy}}$) 증가.
+
+### 산업 전체 효용 ($W_{\\text{Industry}}$) 모델링
+
+- **방법론:** 단순 합산이 아닌, 제약 조건 하의 최적화(Constrained Optimization) 모델 적용.
+- **목적 함수:** Maximize $W = U_{\\text{MD/Theater}} + U_{\\text{Consumer}}$ (산업 파이 극대화)
+- **제약 조건 (생태계 보호):**
+    - $U_{\\text{Indie}} \\ge \\text{Min_Survival_Threshold}$ (독립 영화 생존권 보장)
+    - $U_{\\text{Local_OTT}} \\ge \\text{Competition_Threshold}$ (국내 OTT 경쟁력 유지)
+
+### 시뮬레이션 및 산출물
+
+- **시나리오:** 일괄 규제($t=90$), 완전 자율($t^*$), 유연한 정책($\\alpha$ 기반 차등).
+- **민감도 분석:** 시장 변수($\\beta_{\\text{ad}}, p_{\\text{rate}}, \\gamma, \text{TFS, ONS}$) 변화에 따른 시나리오별 $W_{\\text{Industry}}$ 변화 분석.
+- **최종 산출물:** 최적 균형 정책 제안 리포트
