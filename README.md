@@ -167,7 +167,7 @@ v1(배급사 수익 최적화)에서 도출된 최적 홀드백($t^*$)이 영화
     - **v1 결과 (배급사 최적):**
         - 극장 수익($R_b$) 의존도가 절대적이므로, 배급사는 $R_a$(잠식)를 막기 위해 *매우 긴 홀드백($t^* \ge 90 \sim 120$일)**을 선택합니다.
     - **충돌 (국내 OTT의 위기):**
-        - 국내 OTT($U_{\text{Local_OTT}}$)는 신작 수급 경쟁력이 핵심입니다.
+        - 국내 OTT($U_{\text{Local\_OTT}}$)는 신작 수급 경쟁력이 핵심입니다.
         - 100일 넘게 기다려야 하는 영화는 이미 화제성이 식어 매력도($ONS$)가 떨어지며, 넷플릭스 등 글로벌 OTT 대비 라이브러리 경쟁력을 상실하게 됩니다.
 
 - **Case B: 'OTT Native' 영화 (Low TFS / High ONS)**
@@ -189,7 +189,7 @@ v1(배급사 수익 최적화)에서 도출된 최적 홀드백($t^*$)이 영화
 ---
 ## [Part 3] 거시적 분석: 산업 생태계 효용 시뮬레이션
 
-**핵심 질문:** "특정 홀드백 정책($t$)은 산업 전체 효용($W_{\text{Industry}}$)과 4대 이해관계자($U_{\text{MD}}, U_{\text{Indie}}, U_{\text{Local_OTT}}, U_{\text{Consumer}}$)에게 각각 어떤 영향을 미치는가?"
+**핵심 질문:** "특정 홀드백 정책($t$)은 산업 전체 효용($W_{\text{Industry}}$)과 4대 이해관계자($U_{\text{MD}}, U_{\text{Indie}}, U_{\text{Local\_OTT}}, U_{\text{Consumer}}$)에게 각각 어떤 영향을 미치는가?"
 
 본 분석은 단순한 이해관계자 간의 제로섬 게임이 아닌, **'지속가능한 생태계 균형'**을 찾기 위한 제약 조건 하의 최적화(Constrained Optimization) 모델을 기반으로 합니다.
 
@@ -211,10 +211,10 @@ v1(배급사 수익 최적화)에서 도출된 최적 홀드백($t^*$)이 영화
     - **핵심 변수:**
         - $r$ (Discount Rate): 높은 할인율(예: 연 20%)을 적용하여, 긴 홀드백($t$)으로 인한 자금 경색 위험을 페널티로 반영합니다.
 
-- **(3) 국내 OTT ($U_{\text{Local_OTT}}$)**
+- **(3) 국내 OTT ($U_{\text{Local\_OTT}}$)**
     - **목표:** 글로벌 OTT 대비 '상대적 매력도(Relative Attractiveness)' 유지.
     - **수식:**
-        $$U_{\text{Local_OTT}}(t) = \sum_{k \in \text{High-ONS}} \left[ (\text{ONS}_k \times f_{\text{freshness}}(t)) - \text{Cost}(\tau_k) \right]$$
+        $$U_{\text{Local\_OTT}}(t) = \sum_{k \in \text{High-ONS}} \left[ (\text{ONS}_k \times f_{\text{freshness}}(t)) - \text{Cost}(\tau_k) \right]$$
     - **핵심 변수:**
         - $f_{\text{freshness}}(t)$: $t$가 길어질수록 급격히 감소하는 '신선도 함수'.
         - **의미:** ONS가 높은 영화(드라마, 로맨스 등)를 넷플릭스보다 늦게 받거나, 너무 늦게 받으면($t$ 증가) 효용이 급락합니다.
@@ -236,7 +236,7 @@ v1(배급사 수익 최적화)에서 도출된 최적 홀드백($t^*$)이 영화
         (산업 전체의 부가가치와 소비자 후생의 총합을 극대화)
     - **제약 조건 (Constraints - Survival & Competitiveness):**
         - 독립 영화 생존 조건: $U_{\text{Indie}} \ge \text{Min_Survival_Threshold}$ (독립 제작사의 현금 흐름이 말라붙지 않아야 함)
-        - 국내 OTT 경쟁력 조건: $U_{\text{Local_OTT}} \ge \text{Competition_Threshold}$ (국내 OTT의 매력도가 넷플릭스와 경쟁 가능한 수준이어야 함)
+        - 국내 OTT 경쟁력 조건: $U_{\text{Local\_OTT}} \ge \text{Competition_Threshold}$ (국내 OTT의 매력도가 넷플릭스와 경쟁 가능한 수준이어야 함)
 
 ### 3. 시뮬레이션 시나리오 및 결과
 
@@ -251,7 +251,7 @@ v1(배급사 수익 최적화)에서 도출된 최적 홀드백($t^*$)이 영화
 - **Scenario 2: 완전 자율 (Laissez-faire)**
     - **정책:** 각 배급사가 이익 극대화($t^*$)를 자유롭게 선택.
     - **결과:** $U_{\text{MD}}$: 최대화.
-    - **문제점:** $U_{\text{Local_OTT}}$가 Competition_Threshold 미만으로 하락. (콘텐츠 수급 지연으로 이용자 이탈)
+    - **문제점:** $U_{\text{Local\_OTT}}$가 Competition_Threshold 미만으로 하락. (콘텐츠 수급 지연으로 이용자 이탈)
     - **판정:** 실패 (Infeasible). 플랫폼 경쟁력 상실.
 
 - **Scenario 3: 동적 차등 적용 (Dynamic Policy) - [제안]**
@@ -261,7 +261,7 @@ v1(배급사 수익 최적화)에서 도출된 최적 홀드백($t^*$)이 영화
     - **결과:** 
         - $U_{\text{MD}}$: 최적값보다는 다소 낮으나 안정적 수익 확보.
         - $U_{\text{Indie}}$: 빠른 자금 회수로 생존 조건 충족.
-        - $U_{\text{Local_OTT}}$: OTT 적합 콘텐츠의 빠른 수급으로 경쟁력 유지.
+        - $U_{\text{Local\_OTT}}$: OTT 적합 콘텐츠의 빠른 수급으로 경쟁력 유지.
     - **판정:** 성공 (Optimal Feasible Solution). $W_{\text{Industry}}$가 제약 조건을 모두 만족하면서 가장 높은 수준에 도달함.
 
 ### 4. 결론 및 제언: 동적 홀드백 가이드라인
