@@ -1,0 +1,6 @@
+platform_name,platform_mau,ads_rev_ratio,has_ad_plan,scale_factor
+Netflix,11800000,0.05,True,1.0405068289697719
+Tving,7050000,0.26,True,1.0075942351617875
+Coupang Play,7610000,0.1,False,1.0124783927022956
+Wavve,2600000,0.15,False,0.9438539230896106
+Disney+,2240000,0.05,False,0.9343306947008052
