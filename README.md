@@ -59,7 +59,9 @@ LSTM 모델 2-A($R_b$ 예측)에 입력할 시퀀스 데이터를 생성합니�
     - **계산식 (날짜 d, 타겟 영화 i 기준):**
         - $Screen_{Total10}(d) = \sum_{k \in K_{10}} screen\_cnt_k$
         - $Share_{j(d)} = screen\_cnt_j / Screen_{Total10}(d)$ (경쟁작 $j$)
-        - $CI'(d) = \sum_{j \in K_{10}, j \neq i} (Share_j(d))^2$
+        $$
+        CI'(d) = \sum_{j \in K_{10}, j \neq i} (Share_j(d))^2
+        $$$$
 - **WOM (입소문) 변수:**
     - `social_buzz` (네이버 검색 인덱스 - 관심도)
     - `daily_rating` (일별 평점 - 평가)
@@ -104,13 +106,8 @@ LSTM 모델 2-A($R_b$ 예측)에 입력할 시퀀스 데이터를 생성합니�
         - 3단계: 최종 $\gamma$ 지표 계산:\
             
             $$
-            ⁍
+            \gamma = \frac{\ln(P_{\text{OTT}} + \epsilon)}{\ln(D_{\text{Theater}} + \epsilon)}
             $$
-            
-            $$
-            ⁍
-            $$
-            
              (Log 변환을 통해 값의 왜곡을 줄이고 $\epsilon$을 더해 0 나눗셈 방지)
             
             Log 변환된 값($\gamma_{\text{log}}$)은 주로 음수이므로, 이 값을 그대로 잠식 계수 수식에 곱하면 잠식률이 비정상적으로 낮아지거나(0에 가까워짐), 의미를 해석하기 어렵게 됨
@@ -133,7 +130,7 @@ LSTM 모델 2-A($R_b$ 예측)에 입력할 시퀀스 데이터를 생성합니�
             
             | **시나리오 구분** | **BaseRate 값** | **설정 근거 (Rationale)** |
             | --- | --- | --- |
-            | **Conservative (보수적)** | **0.15 (15%)** | 논문(`Determining...`)에서 인용한 **불법 복제로 인한 기본 손실률(13~15%)**2. OTT가 극장을 거의 대체하지 않고, 불법 복제 리스크만 반영된 최소 수치. |
+            | **Conservative (보수적)** | **0.15 (15%)** | 논문(`Determining...`)에서 인용한 **불법 복제로 인한 기본 손실률(13~15%)**. OTT가 극장을 거의 대체하지 않고, 불법 복제 리스크만 반영된 최소 수치. |
             | **Neutral (중립적)** | **0.30 (30%)** | **해외 동시 개봉 사례(블랙 위도우 등)의 추정 잠식률(20~30%)** 및 국내 소비자 설문조사 결과의 보정치. 일반적인 시뮬레이션의 기준값(Default). |
             | **Aggressive (공격적)** | **0.50 (50%)** | **소비자 설문조사("극장에 안 가겠다")의 최대 응답 비율.** 젊은 층 타겟이나 가벼운 장르(High ONS) 영화에서 발생할 수 있는 최악의 시나리오. |
             
@@ -328,20 +325,26 @@ v1(배급사 수익 최적화)에서 도출된 최적 홀드백($t^*$)이 영화
 - **(2) 독립 제작사 ($U_{\text{Indie}}$)**
     - **목표:** 생존을 위한 '현금 흐름(Cash Flow)' 확보. (극장 흥행보다 빠른 자금 회수가 중요)
     - **수식:**
-    $U_{\text{Indie}}(t) = \sum_{k \in \text{Low-TFS}} \left( \int_{0}^{t} \frac{R_b(z)}{(1+r)^z} dz + \frac{\tau_k(t)}{(1+r)^t} \right)$
+    $$
+    U_{\text{Indie}}(t) = \sum_{k \in \text{Low-TFS}} \left( \int_{0}^{t} \frac{R_b(z)}{(1+r)^z} dz + \frac{\tau_k(t)}{(1+r)^t} \right)
+    $$
     - **핵심 변수:**
         - $r$ (Discount Rate): 높은 할인율(예: 연 20%)을 적용하여, 긴 홀드백($t$)으로 인한 자금 경색 위험을 페널티로 반영합니다.
 - **(3) 국내 OTT ($U_{\text{Local OTT}}$)**
     - **목표:** 글로벌 OTT 대비 '상대적 매력도(Relative Attractiveness)' 유지.
     - **수식:**
-    $U_{\text{Local OTT}}(t) = \sum_{k \in \text{High-ONS}} \left[ (\text{ONS}k \times f{\text{freshness}}(t)) - \text{Cost}(\tau k) \right]$
+    $$
+    U_{\text{Local OTT}}(t) = \sum_{k \in \text{High-ONS}} \left[ (\text{ONS}k \times f{\text{freshness}}(t)) - \text{Cost}(\tau k) \right]
+    $$
     - **핵심 변수:**
         - $f_{\text{freshness}}(t)$: $t$가 길어질수록 급격히 감소하는 '신선도 함수'.
         - **의미:** ONS가 높은 영화(드라마, 로맨스 등)를 넷플릭스보다 늦게 받거나, 너무 늦게 받으면($t$ 증가) 효용이 급락합니다.
 - **(4) 소비자 ($U_{\text{Consumer}}$)**
     - **목표:** 관람 효용(Value) 대비 비용(Cost)과 불편함(Inconvenience)의 최소화.
     - **수식:**
-    $U_{\text{Consumer}}(t) = \text{Value}(t | \gamma) - \text{Price}(t) - \text{Inconv}(t) - P_{\text{Piracy}}(t)$
+    $$
+    U_{\text{Consumer}}(t) = \text{Value}(t | \gamma) - \text{Price}(t) - \text{Inconv}(t) - P_{\text{Piracy}}(t)
+    $$
     - **핵심 변수:**
         - $P_{\text{Piracy}}(t)$: 홀드백 $t$가 길어질수록, 그리고 소비자 선호도($\gamma$)가 높을수록 증가하는 '불법 복제 위험 비용' (사회적 손실).
 
@@ -351,7 +354,9 @@ v1(배급사 수익 최적화)에서 도출된 최적 홀드백($t^*$)이 영화
 
 - **최적화 문제 정의**
     - **목적 함수 (Objective Function):**
-    $\text{Maximize } W = U_{\text{MD/Theater}} + U_{\text{Consumer}}$
+    $$
+    \text{Maximize } W = U_{\text{MD/Theater}} + U_{\text{Consumer}}
+    $$
     (산업 전체의 부가가치와 소비자 후생의 총합을 극대화)
     - **제약 조건 (Constraints - Survival & Competitiveness):**
         - 독립 영화 생존 조건: $U_{\text{Indie}} \ge \text{Min Survival Threshold}$ (독립 제작사의 현금 흐름이 말라붙지 않아야 함)
